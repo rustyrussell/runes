@@ -10,6 +10,6 @@ import sys
 rune = runes.Rune.from_base64(sys.argv[1])
 
 for arg in sys.argv[2:]:
-    rune.add_restriction(runes.Restriction.decode(arg))
+    rune.add_restriction(runes.Restriction.from_str(arg))
 
 print("Your restricted rune is {}".format(rune.to_base64()))

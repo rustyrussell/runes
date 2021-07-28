@@ -105,10 +105,13 @@ class Alternative(object):
         return self.field + self.cond + self.value
 
     @classmethod
-    def decode(cls, encstr: str, ignore_ws=True) -> 'Alternative':
-        if ignore_ws:
-            encstr = re.sub(r'\s+', '', encstr)
+    def decode(cls, encstr: str) -> 'Alternative':
         return cls(*re.split('([' + string.punctuation + '])', encstr))
+
+    @classmethod
+    def from_str(cls, encstr: str) -> 'Alternative':
+        encstr = re.sub(r'\s+', '', encstr)
+        return cls.decode(encstr)
 
     def __eq__(self, other) -> bool:
         return (self.field == other.field
@@ -137,11 +140,16 @@ restriction is met"""
         return '|'.join([alt.encode() for alt in self.alternatives])
 
     @classmethod
-    def decode(cls, encstr: str, ignore_ws=True) -> 'Restriction':
+    def decode(cls, encstr: str) -> 'Restriction':
         alts = []
         for altstr in encstr.split('|'):
-            alts.append(Alternative.decode(altstr, ignore_ws))
+            alts.append(Alternative.decode(altstr))
         return cls(alts)
+
+    @classmethod
+    def from_str(cls, encstr: str) -> 'Restriction':
+        encstr = re.sub(r'\s+', '', encstr)
+        return cls.decode(encstr)
 
     def __eq__(self, other) -> bool:
         return list(self.alternatives) == list(other.alternatives)
@@ -203,7 +211,7 @@ restrictions and it will still be valid"""
         if parts == ['']:
             parts = []
         for restrstr in parts:
-            restrictions.append(Restriction.decode(restrstr, ignore_ws=False))
+            restrictions.append(Restriction.decode(restrstr))
         return cls(binstr[:32], restrictions)
 
     def __eq__(self, other) -> bool:
