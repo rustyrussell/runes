@@ -197,7 +197,7 @@ def test_rune_restrictions():
 
 
 def test_rune_fromstring_norestrictions():
-    rune = runes.Rune.from_str('-YpZTBZ4Tb5SsUz3XIukxBxR619iEthm9oNJnC0LxZM=')
+    rune = runes.Rune.from_base64('-YpZTBZ4Tb5SsUz3XIukxBxR619iEthm9oNJnC0LxZM=')
     assert rune.restrictions == []
 
                                
@@ -211,7 +211,7 @@ def test_rune_tostring():
     restr2 = runes.Restriction((alt3,))
 
     rune = runes.MasterRune(bytes([1]*32), [restr1, restr2])
-    runestr = rune.to_str()
-    rune2 = runes.Rune.from_str(runestr)
+    runestr = rune.to_base64()
+    rune2 = runes.Rune.from_base64(runestr)
 
     assert rune == rune2

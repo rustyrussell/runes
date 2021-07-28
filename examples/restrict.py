@@ -6,9 +6,9 @@ examples/restrict.py -YpZTBZ4Tb5SsUz3XIukxBxR619iEthm9oNJnC0LxZM= 'command=fooba
 import runes
 import sys
 
-rune = runes.Rune.from_str(sys.argv[1])
+rune = runes.Rune.from_base64(sys.argv[1])
 
 for arg in sys.argv[2:]:
     rune.add_restriction(runes.Restriction.decode(arg))
 
-print("Your restricted rune is {}".format(rune.to_str()))
+print("Your restricted rune is {}".format(rune.to_base64()))

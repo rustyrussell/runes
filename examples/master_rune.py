@@ -10,4 +10,4 @@ secret = bytes([5] * 16)
 rune = runes.MasterRune(secret)
 
 # We could add our own restrictions here, if we wanted.
-print("Your rune is {}".format(rune.to_str()))
+print("Your rune is {}".format(rune.to_base64()))

@@ -11,7 +11,7 @@ master_rune = runes.MasterRune(secret)
 runestring = sys.argv[1]
 
 # You'd catch exceptions here, usually.
-rune = runes.Rune.from_str(runestring)
+rune = runes.Rune.from_base64(runestring)
 
 # Make sure auth is correct, first.
 if not master_rune.is_rune_authorized(rune):

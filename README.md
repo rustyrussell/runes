@@ -102,7 +102,7 @@ secret = bytes([5] * 16)
 rune = runes.MasterRune(secret)
 
 # We could add our own restrictions here, if we wanted.
-print("Your rune is {}".format(rune.to_str()))
+print("Your rune is {}".format(rune.to_base64()))
 ```
 
 Here's the server, checking a rune:
@@ -119,7 +119,7 @@ master_rune = runes.MasterRune(secret)
 runestring = sys.argv[1]
 
 # You'd catch exceptions here, usually.
-rune = runes.from_str(runestring)
+rune = runes.from_base64(runestring)
 
 # Make sure auth is correct, first.
 if not master_rune.is_rune_authorized(rune):
@@ -151,13 +151,13 @@ import time
 runestring = sys.argv[1]
 
 # You'd catch exceptions here, usually.
-rune = runes.from_str(runestring)
+rune = runes.from_base64(runestring)
 
 # You can construct a Restriction class from a sequence of Alternative
 # but it's easier to use decode() to translate a string
 rune.add_restriction(rune.Restriction.decode("time < {}".format((int)time.time() + 60))
 
-print("Your restricted rune is {}".format(rune.to_str()))
+print("Your restricted rune is {}".format(rune.to_base64()))
 ```
 
 ## Author

@@ -187,13 +187,13 @@ restrictions and it will still be valid"""
     def authcode(self) -> bytes:
         return self.shaobj.state[0]
 
-    def to_str(self) -> str:
+    def to_base64(self) -> str:
         restrstr = '&'.join([r.encode() for r in self.restrictions])
         return base64.urlsafe_b64encode(self.authcode()
                                         + bytes(restrstr, encoding='utf8')).decode('utf8')
 
     @classmethod
-    def from_str(cls, b64str) -> 'Rune':
+    def from_base64(cls, b64str) -> 'Rune':
         binstr = base64.urlsafe_b64decode(b64str)
         restrictions = []
         # Python empty string split with delimiter *SUCKS*
