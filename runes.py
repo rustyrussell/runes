@@ -2,7 +2,7 @@ import base64
 import hashlib
 import re
 # We can't use the hashlib one, since we need midstate access :(
-import sha256
+import sha256  # type: ignore
 import string
 from typing import Dict, Sequence, Optional, Tuple, Any
 
@@ -153,7 +153,7 @@ restrictions and it will still be valid"""
     def __init__(self,
                  authcode: bytes,
                  restrictions: Sequence[Restriction] = []):
-        self.restrictions = restrictions
+        self.restrictions = list(restrictions)
 
         # How many bytes encoded so far? (seed block is 64 bytes)
         runelength = 64

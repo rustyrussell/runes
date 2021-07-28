@@ -1,6 +1,6 @@
 import hashlib
 import runes
-import sha256
+import sha256  # type: ignore
 from typing import Sequence
 
 
