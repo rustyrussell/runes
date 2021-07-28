@@ -46,16 +46,18 @@ Grouping using `(` and `)` may be added in future.
 A restriction is a group of alternatives separated by `|`; restrictions
 are separated by `&`.
 e.g.
-    cmd=foo|cmd=bar&subcmd!|subcmd{get
 
-The first requires `cmd` be presebt, and to be `foo` or `bar`.  The second
+    cmd=foo | cmd=bar
+	& subcmd! | subcmd{get
+
+The first requires `cmd` be present, and to be `foo` or `bar`.  The second
 requires that `subcmd` is not present, or is lexicographically less than `get`.
 Both must be true for authorization to succeed.
 
 
 ## Rune Authorization
 
-Following the Rune comes a SHA-256 authentication code.  This is
+A run also comes with a SHA-256 authentication code.  This is
 generated as SHA-256 of the following bytestream:
 
 1. The secret (less than 56 bytes, known only to the server which issued it).
@@ -72,6 +74,7 @@ with the result from any prior restriction, and continue.
 The server can validate the rune authorization by repeating this
 procedure and checking the result.
 
+
 ## Rune Encoding
 
 Runes are encoded as base64, starting with the 256-bit SHA256
@@ -79,8 +82,9 @@ authentication code, the followed by one or more restrictions
 separated by `&`.
 
 Not because base64 is good, but because it's familiar to Web people;
-we use RFC 3548 with `+` and `/` replaced by `-` and `_` to make
-it urlsafe.
+we use RFC3548 with `+` and `/` replaced by `-` and `_` to make
+it URL safe.
+
 
 ## API Example
 
@@ -156,9 +160,8 @@ rune.add_restriction(rune.Restriction.decode("time < {}".format((int)time.time()
 print("Your restricted rune is {}".format(rune.to_str()))
 ```
 
+## Author
 
-
-
-
-
-
+Rusty Russell wrote it; but I blame @roasbeef for raving about them
+long enough at LnConf that I actually read the paper.  It only took me
+18 months to find a day to implement them.
