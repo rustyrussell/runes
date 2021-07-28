@@ -56,7 +56,7 @@ def test_rune_auth():
 def test_rune_alternatives():
     """Test that we interpret alternatives as expected"""
     alt = runes.Alternative('f1', '!', '')
-    assert alt.test({}) == None
+    assert alt.test({}) is None
     assert alt.test({'f1': '1'}) == 'f1: is present'
     assert alt.test({'f2': '1'}) is None
 
@@ -174,33 +174,40 @@ def test_rune_restrictions():
 
     rune = runes.Rune(bytes(32), [runes.Restriction((alt1, alt2))])
     assert rune.are_restrictions_met({}) == (True, '')
-    assert rune.are_restrictions_met({'f1': '1', 'f2': 3}) == (False, 'f1: is present AND f2: != 2')
+    assert (rune.are_restrictions_met({'f1': '1', 'f2': 3})
+            == (False, 'f1: is present AND f2: != 2'))
     assert rune.are_restrictions_met({'f1': '1', 'f2': 2}) == (True, '')
     assert rune.are_restrictions_met({'f2': '1'}) == (True, '')
     assert rune.are_restrictions_met({'f2': '2'}) == (True, '')
-    
+
     alt3 = runes.Alternative('f3', '>', '2')
     rune = runes.Rune(bytes(32), [runes.Restriction((alt1, alt2)),
                                   runes.Restriction((alt3,))])
     assert rune.are_restrictions_met({}) == (False, 'f3: is missing')
-    assert rune.are_restrictions_met({'f1': '1', 'f2': 3}) == (False, 'f1: is present AND f2: != 2')
-    assert rune.are_restrictions_met({'f1': '1', 'f2': 2}) == (False, 'f3: is missing')
+    assert (rune.are_restrictions_met({'f1': '1', 'f2': 3})
+            == (False, 'f1: is present AND f2: != 2'))
+    assert (rune.are_restrictions_met({'f1': '1', 'f2': 2})
+            == (False, 'f3: is missing'))
     assert rune.are_restrictions_met({'f2': '1'}) == (False, 'f3: is missing')
     assert rune.are_restrictions_met({'f2': '2'}) == (False, 'f3: is missing')
     assert rune.are_restrictions_met({'f3': '2'}) == (False, 'f3: <= 2')
     assert rune.are_restrictions_met({'f3': '3'}) == (True, '')
-    assert rune.are_restrictions_met({'f1': '1', 'f2': 'x', 'f3': 3}) == (False, 'f1: is present AND f2: != 2')
-    assert rune.are_restrictions_met({'f2': '1', 'f3': 2}) == (False, 'f3: <= 2')
-    assert rune.are_restrictions_met({'f2': '2', 'f3': 2}) == (False, 'f3: <= 2')
+    assert (rune.are_restrictions_met({'f1': '1', 'f2': 'x', 'f3': 3})
+            == (False, 'f1: is present AND f2: != 2'))
+    assert (rune.are_restrictions_met({'f2': '1', 'f3': 2})
+            == (False, 'f3: <= 2'))
+    assert (rune.are_restrictions_met({'f2': '2', 'f3': 2})
+            == (False, 'f3: <= 2'))
     assert rune.are_restrictions_met({'f2': '1', 'f3': 3}) == (True, '')
     assert rune.are_restrictions_met({'f2': '2', 'f3': 4}) == (True, '')
 
 
 def test_rune_fromstring_norestrictions():
-    rune = runes.Rune.from_base64('-YpZTBZ4Tb5SsUz3XIukxBxR619iEthm9oNJnC0LxZM=')
+    rune = runes.Rune.from_base64('-YpZTBZ4Tb5SsUz3XIukxBx'
+                                  'R619iEthm9oNJnC0LxZM=')
     assert rune.restrictions == []
 
-                               
+
 def test_rune_tostring():
     alt1 = runes.Alternative('f1', '!', '')
     alt2 = runes.Alternative('f2', '=', '2')

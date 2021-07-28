@@ -1,7 +1,8 @@
 #! /usr/bin/python3
 """Example of adding restrictions to a rune, eg:
 
-examples/restrict.py -YpZTBZ4Tb5SsUz3XIukxBxR619iEthm9oNJnC0LxZM= 'command=foobar|command=fizzbuz'
+examples/restrict.py -YpZTBZ4Tb5SsUz3XIukxBxR619iEthm9oNJnC0LxZM= \
+   'command=foobar|command=fizzbuz'
 """
 import runes
 import sys

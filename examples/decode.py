@@ -11,9 +11,11 @@ runestring = sys.argv[1]
 # You'd catch exceptions here, usually.
 rune = runes.Rune.from_base64(runestring)
 
+
 # Insert whitespace around operators.
 def pretty(code: str):
     return re.sub('([' + string.punctuation + '])', r' \1 ', code)
+
 
 print("Authcode: {}".format(rune.authcode().hex()))
 print("Restrictions:")

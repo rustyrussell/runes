@@ -35,7 +35,7 @@ class Alternative(object):
         """Returns None on success, otherwise an explanation string"""
         # This is always True
         if self.cond == '#':
-            return None 
+            return None
 
         def why(cond, field, explanation) -> Optional[str]:
             if cond:
@@ -117,7 +117,8 @@ class Alternative(object):
 
 
 class Restriction(object):
-    """A restriction is a set of alternatives: any of those pass, the restriction is met"""
+    """A restriction is a set of alternatives: any of those pass, the
+restriction is met"""
     def __init__(self, alternatives: Sequence[Alternative]):
         self.alternatives = alternatives
 
@@ -144,7 +145,7 @@ class Restriction(object):
 
     def __eq__(self, other) -> bool:
         return list(self.alternatives) == list(other.alternatives)
-    
+
 
 class Rune(object):
     """A Rune, such as you might get from a server.  You can add
@@ -189,8 +190,9 @@ restrictions and it will still be valid"""
 
     def to_base64(self) -> str:
         restrstr = '&'.join([r.encode() for r in self.restrictions])
-        return base64.urlsafe_b64encode(self.authcode()
-                                        + bytes(restrstr, encoding='utf8')).decode('utf8')
+        binstr = base64.urlsafe_b64encode(self.authcode()
+                                          + bytes(restrstr, encoding='utf8'))
+        return binstr.decode('utf8')
 
     @classmethod
     def from_base64(cls, b64str) -> 'Rune':
@@ -211,7 +213,9 @@ restrictions and it will still be valid"""
 
 class MasterRune(Rune):
     """This is where the server creates the Rune"""
-    def __init__(self, seedsecret: bytes, restrictions: Sequence[Restriction]=[]):
+    def __init__(self,
+                 seedsecret: bytes,
+                 restrictions: Sequence[Restriction] = []):
         self.restrictions = []
         # Everyone assumes that seed secret takes 1 block only
         assert len(seedsecret) + 1 + 8 <= 64

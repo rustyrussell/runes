@@ -1,7 +1,6 @@
 #! /usr/bin/python3
 """Example of the server issuiing a rune"""
 import runes
-import secrets
 
 # Secret determined by fair dice roll.
 secret = bytes([5] * 16)

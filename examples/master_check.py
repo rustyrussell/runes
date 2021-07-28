@@ -23,7 +23,7 @@ if not master_rune.is_rune_authorized(rune):
 # and optional id.
 ok, whyfail = rune.are_restrictions_met({'time': int(time.time()),
                                          'command': 'somecommand',
-					 'id': 'DEADBEEF'})
+                                         'id': 'DEADBEEF'})
 if not ok:
     print("Rune restrictions failed: {}".format(whyfail))
     sys.exit(1)
