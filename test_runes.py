@@ -52,6 +52,15 @@ def test_rune_auth():
     assert not mr.is_rune_authorized(runes.Rune(mr.authcode(), []))
     assert mr.is_rune_authorized(runes.Rune(mr.authcode(), [restriction]))
 
+    long_restriction = runes.Restriction([runes.Alternative('f' * 32, '=', 'v1' * 64)])
+    mr.add_restriction(long_restriction)
+
+    assert check_auth_sha(secret, [restriction, long_restriction]) == mr.authcode()
+    assert not mr.is_rune_authorized(runes.Rune(mr.authcode(), [restriction]))
+    assert not mr.is_rune_authorized(runes.Rune(mr.authcode(), [long_restriction]))
+    assert not mr.is_rune_authorized(runes.Rune(mr.authcode(), [long_restriction, restriction]))
+    assert mr.is_rune_authorized(runes.Rune(mr.authcode(), [restriction, long_restriction]))
+
 
 def test_rune_alternatives():
     """Test that we interpret alternatives as expected"""
@@ -217,7 +226,7 @@ def test_rune_tostring():
     restr1 = runes.Restriction((alt1, alt2))
     restr2 = runes.Restriction((alt3,))
 
-    rune = runes.MasterRune(bytes([1]*32), [restr1, restr2])
+    rune = runes.MasterRune(bytes([1] * 32), [restr1, restr2])
     runestr = rune.to_base64()
     rune2 = runes.Rune.from_base64(runestr)
 
