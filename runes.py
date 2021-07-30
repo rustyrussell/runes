@@ -7,6 +7,9 @@ import string
 from typing import Dict, Sequence, Optional, Tuple, Any
 
 
+__version__ = "0.1"
+
+
 def padlen_64(x: int):
     """Amount which will increase x until it's divisible evenly by 64"""
     return (64 - (x % 64)) % 64

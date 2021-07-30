@@ -1,4 +1,4 @@
-# Runes - Because You Didn't Actually Want a MAC
+# Runes - Simple Cookies You Can Extend (similar to Macaroons)
 
 https://research.google/pubs/pub41892/ is a paper called "Macaroons:
 Cookies with Contextual Caveats for Decentralized Authorization in the
