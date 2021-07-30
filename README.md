@@ -12,7 +12,8 @@ the server, and they can't remove the restrictions.
 But they did it using a Message Authetication Code (MAC, get it?),
 which is actually counter-productive, since it's simpler and better to
 use Length Extension to achieve the same results.  I call that a Rune;
-this version really only handles strings, but you can get creative.
+this version really only handles strings, but you can use hex or another
+encoding.
 
 ## Rune Language
 
@@ -159,6 +160,8 @@ rune.add_restriction(rune.Restriction.decode("time < {}".format((int)time.time()
 
 print("Your restricted rune is {}".format(rune.to_base64()))
 ```
+
+You can find more examples in the examples/ subdirectory.
 
 ## Author
 
