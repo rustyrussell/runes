@@ -254,3 +254,23 @@ def test_rune_tostring():
     rune2 = runes.Rune.from_base64(runestr)
 
     assert rune == rune2
+
+
+def test_check():
+    # Rune with 16x0 secret.
+    secret = bytes(16)
+    mr = runes.MasterRune(secret)
+    rune = mr.copy()
+    rune.add_restriction(runes.Restriction.from_str('foo=bar'))
+    runestr = rune.to_base64()
+
+    # MasterRune variants work
+    assert mr.check_with_reason(runestr, {'foo': 'bar'}) == (True, '')
+    assert mr.check_with_reason(runestr, {'foo': 'baz'}) == (False, 'foo: != bar')
+
+    assert runes.check_with_reason(secret, runestr, {'foo': 'bar'}) == (True, '')
+    assert (runes.check_with_reason(secret, runestr, {'foo': 'baz'})
+            == (False, 'foo: != bar'))
+
+    assert runes.check(secret, runestr, {'foo': 'bar'})
+    assert not runes.check(secret, runestr, {'foo': 'baz'})

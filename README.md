@@ -106,7 +106,11 @@ rune = runes.MasterRune(secret)
 print("Your rune is {}".format(rune.to_base64()))
 ```
 
-Here's the server, checking a rune:
+Here's the server, checking a rune.  You will need to define what
+conditions you provide for the rune to test; one of the most useful
+ones is time, but other common things are the resource being accessed,
+(e.g. URL, or command and parameters), or who is accessing it (assuming
+you have authenticated them already in some way).
 
 ```
 import runes
@@ -114,28 +118,21 @@ import time
 import sys
 
 secret = bytes([5] * 16)
-master_rune = runes.MasterRune(secret)
 
 # In real life, this would come from the web data.
 runestring = sys.argv[1]
 
-# You'd catch exceptions here, usually.
-rune = runes.from_base64(runestring)
-
-# Make sure auth is correct, first.
-if not master_rune.is_rune_authorized(rune):
-    print("Rune is not authorized, go away!")
-    return
-
-# Now, lets see if it meets our values.  I assume we
-# have values time (UNIX, seconds since 1970), command
-# and optional id.
-pass, whyfail = rune.are_restrictions_met({'time': int(time.time),
-                                           'command': 'somecommand',
-                                           'id': 'DEADBEEF'})
-if not pass:
+# This checks the format is correct, it's authorized, an that it meets
+# our values.  I assume we have values time (UNIX, seconds since
+# 1970), command and optional id.
+# (You can also use rune.check() if you don't care *why* it failed)
+ok, whyfail = rune.check_with_reason(secret, runestring,
+                                     {'time': int(time.time()),
+                                      'command': 'somecommand',
+                                      'id': 'DEADBEEF'})
+if not ok:
     print("Rune restrictions failed: {}".format(whyfail))
-    return
+    sys.exit(1)
 
 print("Yes, you passed!")
 ```

@@ -8,7 +8,7 @@ import string
 from typing import Dict, Sequence, Optional, Tuple, Any
 
 
-__version__ = "0.1"
+__version__ = "0.2"
 
 
 def padlen_64(x: int):
@@ -290,3 +290,38 @@ class MasterRune(Rune):
             totlen += len(enc)
 
         return other.authcode() == sha.digest()
+
+    def check_with_reason(self, b64str: str, values: Dict[str, Any]) -> Tuple[bool, str]:
+        """All-in-one check that a runestring is valid, derives from this
+MasterRune and passes all its conditions against the given dictionary
+of values"""
+        try:
+            rune = Rune.from_base64(b64str)
+        except:  # noqa: E722
+            return False, "runestring invalid"
+        if not self.is_rune_authorized(rune):
+            return False, "rune authcode invalid"
+        return rune.are_restrictions_met(values)
+
+
+def check_with_reason(secret: bytes, b64str: str, values: Dict[str, Any]) -> Tuple[bool, str]:
+    """Convenience function that the b64str runestring is valid, derives
+from our secret, and passes against these values.  If you want to
+check many runes, it's more efficient to create the MasterRune first
+then check them, but this is fine if you're only checking one.
+
+    """
+    return MasterRune(secret).check_with_reason(b64str, values)
+
+
+def check(secret: bytes, b64str: str, values: Dict[str, Any]) -> bool:
+    """Convenience function that the b64str runestring is valid, derives
+from our secret, and passes against these values.  If you want to
+check many runes, it's more efficient to create the MasterRune first
+then check them, but this is fine if you're only checking one.
+
+Unlike check_with_reason(), this discards the reason and returns a
+simple True or False.
+
+    """
+    return check_with_reason(secret, b64str, values)[0]
