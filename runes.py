@@ -1,4 +1,5 @@
 import base64
+import copy
 import hashlib
 import re
 # We can't use the hashlib one, since we need midstate access :(
@@ -221,6 +222,18 @@ restrictions and it will still be valid"""
         return (self.restrictions == other.restrictions
                 and self.shaobj.state == other.shaobj.state)
 
+    def copy(self) -> 'Rune':
+        """Perform a shallow copy"""
+        return self.__copy__()
+
+    def __copy__(self) -> 'Rune':
+        # You don't want to share the shaobj!
+        return Rune(self.shaobj.state[0], self.restrictions)
+
+    def __deepcopy__(self, memo=None) -> 'Rune':
+        """sha256.sha256 doesn't implement pickle"""
+        return Rune(self.shaobj.state[0], copy.deepcopy(self.restrictions))
+
 
 class MasterRune(Rune):
     """This is where the server creates the Rune"""
@@ -239,6 +252,28 @@ class MasterRune(Rune):
         self.shabase = hashlib.sha256()
         self.shabase.update(seedsecret)
         self.seclen = len(seedsecret)
+
+    def copy(self) -> 'Rune':
+        """Perform a shallow copy"""
+        return self.__copy__()
+
+    def __copy__(self) -> 'MasterRune':
+        # Create dummy so we can populate it (we don't store secret)
+        ret = MasterRune(bytes())
+        ret.restrictions = self.restrictions
+        ret.shaobj.state = self.shaobj.state
+        ret.shabase = self.shabase
+        ret.seclen = self.seclen
+        return ret
+
+    def __deepcopy__(self, memo=None) -> 'MasterRune':
+        """sha256.sha256 doesn't implement pickle"""
+        ret = MasterRune(bytes())
+        ret.restrictions = copy.deepcopy(self.restrictions)
+        ret.shaobj.state = self.shaobj.state
+        ret.shabase = self.shabase
+        ret.seclen = self.seclen
+        return ret
 
     def is_rune_authorized(self, other: Rune) -> bool:
         """This is faster than adding the restrictions one-by-one and checking

@@ -1,3 +1,4 @@
+import copy
 import hashlib
 import runes
 import sha256  # type: ignore
@@ -215,6 +216,28 @@ def test_rune_fromstring_norestrictions():
     rune = runes.Rune.from_base64('-YpZTBZ4Tb5SsUz3XIukxBx'
                                   'R619iEthm9oNJnC0LxZM=')
     assert rune.restrictions == []
+
+
+def test_copy():
+    """Make sure copies get their own sha state, as it corresponds to the restrictions list, which *is* copied"""
+    mr = runes.MasterRune(bytes(16))
+    state = mr.shaobj.state
+
+    # .copy() and copy module should work the same.
+    for mrune in (mr.copy(), copy.copy(mr), copy.deepcopy(mr)):
+        restriction = runes.Restriction([runes.Alternative('f1', '=', 'v1')])
+        mrune.add_restriction(restriction)
+        assert mrune.shaobj.state != state
+        assert mr.shaobj.state == state
+
+    # Should work on normal runes, as well.
+    orig = runes.Rune.from_base64(mr.to_base64())
+    state = orig.shaobj.state
+    for rune in (orig.copy(), copy.copy(orig), copy.deepcopy(orig)):
+        restriction = runes.Restriction([runes.Alternative('f1', '=', 'v1')])
+        rune.add_restriction(restriction)
+        assert rune.shaobj.state != state
+        assert orig.shaobj.state == state
 
 
 def test_rune_tostring():
