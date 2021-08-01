@@ -1,7 +1,10 @@
+import base64
 import copy
 import hashlib
+import pytest
 import runes
 import sha256  # type: ignore
+import string
 from typing import Sequence
 
 
@@ -274,3 +277,37 @@ def test_check():
 
     assert runes.check(secret, runestr, {'foo': 'bar'})
     assert not runes.check(secret, runestr, {'foo': 'baz'})
+
+
+@pytest.mark.xfail(strict=True)
+def test_field_with_punctuation():
+    rune = runes.Rune(bytes(32), [runes.Restriction.from_str('foo=bar.baz')])
+    runestr = rune.to_base64()
+
+    rune2 = runes.Rune.from_base64(runestr)
+    assert rune == rune2
+
+    # You can add any punctuation this way...
+    alt = runes.Alternative.from_str("foo=" + string.punctuation)
+    alt2, remainder = runes.Alternative.decode(alt.encode())
+    assert remainder == ''
+    assert alt == alt2
+
+    restr = runes.Restriction([alt])
+    assert restr.encode() == "foo=" + string.punctuation.replace('\\', '\\\\').replace('&', '\\&').replace('|', '\\|')
+    restr2, remainder = runes.Restriction.decode(restr.encode())
+    assert remainder == ''
+    assert restr == restr2
+    rune.add_restriction(restr)
+
+    # | and & get escaped on demarshal.
+    decoded = base64.urlsafe_b64decode(rune.to_base64())[32:].decode('utf8')
+    assert decoded == 'foo=bar.baz' + '&' + 'foo=' + string.punctuation.replace('\\', '\\\\').replace('&', '\\&').replace('|', '\\|')
+
+    rune.add_restriction(runes.Restriction.from_str("foo=1"))
+    decoded = base64.urlsafe_b64decode(rune.to_base64())[32:].decode('utf8')
+    assert decoded == 'foo=bar.baz' + '&' + 'foo=' + string.punctuation.replace('\\', '\\\\').replace('&', '\\&').replace('|', '\\|') + '&' + 'foo=1'
+
+    runestr = rune.to_base64()
+    rune2 = runes.Rune.from_base64(runestr)
+    assert rune == rune2
