@@ -80,6 +80,14 @@ def test_rune_alternatives():
     assert alt.test({'f1': '010'}) == 'f1: != 1'
     assert alt.test({'f1': '10101'}) == 'f1: != 1'
 
+    alt = runes.Alternative('f1', '/', '1')
+    assert alt.test({}) == 'f1: is missing'
+    assert alt.test({'f1': '1'}) == 'f1: = 1'
+    assert alt.test({'f1': '01'}) is None
+    assert alt.test({'f1': '10'}) is None
+    assert alt.test({'f1': '010'}) is None
+    assert alt.test({'f1': '10101'}) is None
+
     alt = runes.Alternative('f1', '$', '1')
     assert alt.test({}) == 'f1: is missing'
     assert alt.test({'f1': '1'}) is None

@@ -35,6 +35,7 @@ def pretty(code: str):
     parts = re.split('([' + string.punctuation + '])', code, maxsplit=1)
     formatters = {'!': "{field} is missing",
                   '=': "{field} equals '{value}'",
+                  '/': "{field} is not exactly the same as '{value}'",
                   '^': "{field} starts with '{value}'",
                   '$': "{field} ends with '{value}'",
                   '~': "{field} contains '{value}'",

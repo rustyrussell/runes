@@ -27,7 +27,7 @@ class Alternative(object):
     def __init__(self, field: str, cond: str, value: str):
         if any([c in string.punctuation for c in field]):
             raise ValueError("field not valid")
-        if cond not in ('!', '=', '^', '$', '~', '<', '>', '}', '{', '#'):
+        if cond not in ('!', '=', '/', '^', '$', '~', '<', '>', '}', '{', '#'):
             raise ValueError("cond not valid")
         self.field = field
         self.value = value
@@ -55,6 +55,10 @@ class Alternative(object):
             return why(val == self.value,
                        self.field,
                        '!= {}'.format(self.value))
+        elif self.cond == '/':
+            return why(val != self.value,
+                       self.field,
+                       '= {}'.format(self.value))
         elif self.cond == '^':
             return why(val.startswith(self.value),
                        self.field,
