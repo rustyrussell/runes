@@ -8,7 +8,7 @@ import string
 from typing import Dict, Sequence, Optional, Tuple, Any
 
 
-__version__ = "0.2"
+__version__ = "0.3"
 
 
 def padlen_64(x: int):
