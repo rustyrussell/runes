@@ -27,8 +27,6 @@ class Alternative(object):
     def __init__(self, field: str, cond: str, value: str):
         if any([c in string.punctuation for c in field]):
             raise ValueError("field not valid")
-        if any([c in string.punctuation for c in value]):
-            raise ValueError("value not valid")
         if cond not in ('!', '=', '^', '$', '~', '<', '>', '}', '{', '#'):
             raise ValueError("cond not valid")
         self.field = field
@@ -106,16 +104,49 @@ class Alternative(object):
             assert False
 
     def encode(self) -> str:
-        return self.field + self.cond + self.value
+        return self.field + self.cond + (self.value
+                                         .replace('\\', '\\\\')
+                                         .replace('|', '\\|')
+                                         .replace('&', '\\&'))
 
     @classmethod
-    def decode(cls, encstr: str) -> 'Alternative':
-        return cls(*re.split('([' + string.punctuation + '])', encstr))
+    def decode(cls, encstr: str) -> Tuple['Alternative', str]:
+        """Pull an Alternative from encoded string, return remainder"""
+        cond = None
+        end_off = 0
+
+        # Swallow field up to conditiona
+        while end_off < len(encstr):
+            if encstr[end_off] in string.punctuation:
+                cond = encstr[end_off]
+                break
+            end_off += 1
+        if cond is None:
+            raise ValueError('{} does not contain any operator'
+                             .format(encstr))
+        field = encstr[:end_off]
+        end_off += 1
+
+        value = ''
+        while end_off < len(encstr):
+            if encstr[end_off] == '|':
+                # We swallow this
+                end_off += 1
+                break
+            if encstr[end_off] == '&':
+                break
+            if encstr[end_off] == '\\':
+                end_off += 1
+            value += encstr[end_off]
+            end_off += 1
+
+        return cls(field, cond, value), encstr[end_off:]
 
     @classmethod
     def from_str(cls, encstr: str) -> 'Alternative':
+        """Turns this user-readable string into an Alternative (no escaping)"""
         encstr = re.sub(r'\s+', '', encstr)
-        return cls.decode(encstr)
+        return cls(*re.split('([' + string.punctuation + '])', encstr, maxsplit=1))
 
     def __eq__(self, other) -> bool:
         return (self.field == other.field
@@ -144,16 +175,26 @@ restriction is met"""
         return '|'.join([alt.encode() for alt in self.alternatives])
 
     @classmethod
-    def decode(cls, encstr: str) -> 'Restriction':
+    def decode(cls, encstr: str) -> Tuple['Restriction', str]:
+        """Pull a Restriction from encoded string, return remainder"""
         alts = []
-        for altstr in encstr.split('|'):
-            alts.append(Alternative.decode(altstr))
-        return cls(alts)
+        while len(encstr) != 0:
+            if encstr.startswith('&'):
+                encstr = encstr[1:]
+                break
+            alt, encstr = Alternative.decode(encstr)
+            alts.append(alt)
+        return cls(alts), encstr
 
     @classmethod
     def from_str(cls, encstr: str) -> 'Restriction':
+        """Returns a Restriction from an escaped string (ignoring whitespace)"""
         encstr = re.sub(r'\s+', '', encstr)
-        return cls.decode(encstr)
+        ret, remainder = cls.decode(encstr)
+        if len(remainder) != 0:
+            raise ValueError("Restriction had extrs characters at end: {}"
+                             .format(remainder))
+        return ret
 
     def __eq__(self, other) -> bool:
         return list(self.alternatives) == list(other.alternatives)
@@ -210,12 +251,11 @@ restrictions and it will still be valid"""
     def from_base64(cls, b64str) -> 'Rune':
         binstr = base64.urlsafe_b64decode(b64str)
         restrictions = []
-        # Python empty string split with delimiter *SUCKS*
-        parts = binstr[32:].decode('utf8').split('&')
-        if parts == ['']:
-            parts = []
-        for restrstr in parts:
-            restrictions.append(Restriction.decode(restrstr))
+        restrictstr = binstr[32:].decode('utf8')
+
+        while len(restrictstr) != 0:
+            restr, restrictstr = Restriction.decode(restrictstr)
+            restrictions.append(restr)
         return cls(binstr[:32], restrictions)
 
     def __eq__(self, other) -> bool:

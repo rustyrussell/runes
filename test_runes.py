@@ -1,7 +1,6 @@
 import base64
 import copy
 import hashlib
-import pytest
 import runes
 import sha256  # type: ignore
 import string
@@ -279,7 +278,6 @@ def test_check():
     assert not runes.check(secret, runestr, {'foo': 'baz'})
 
 
-@pytest.mark.xfail(strict=True)
 def test_field_with_punctuation():
     rune = runes.Rune(bytes(32), [runes.Restriction.from_str('foo=bar.baz')])
     runestr = rune.to_base64()

@@ -26,8 +26,9 @@ The form of each alternative is a simple string:
 
     ALTERNATIVE := FIELDNAME CONDITION VALUE
 
-`FIELDNAME` and `VALUE` contain only UTF-8 characters, exclusive of
-! " # $ % & ' ( ) * +, - . / : ;  ? @ [ \ ] ^ _ ` { | } ~ (C's ispunct()).
+`FIELDNAME` contains only UTF-8 characters, exclusive of
+! " # $ % & ' ( ) * +, - . / : ;  ? @ [ \ ] ^ _ \` { | } ~ (C's ispunct()).
+These can appear inside a `VALUE`, but `&`, `|` and `\\` must be escaped with `\` (escaping is legal for any character, but unnecessary).
 
 
 `CONDITION` is one of the following values:
