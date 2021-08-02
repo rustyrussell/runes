@@ -304,7 +304,7 @@ class MasterRune(Rune):
     def __copy__(self) -> 'MasterRune':
         # Create dummy so we can populate it (we don't store secret)
         ret = MasterRune(bytes())
-        ret.restrictions = self.restrictions
+        ret.restrictions = self.restrictions.copy()
         ret.shaobj.state = self.shaobj.state
         ret.shabase = self.shabase
         ret.seclen = self.seclen
