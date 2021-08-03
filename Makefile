@@ -21,10 +21,10 @@ check-flake8:
 	flake8 --ignore=E501,E731,W503 *.py
 
 check-pytest:
-	pytest
+	python3 -m pytest
 
 check-mypy:
-	mypy *.py
+	mypy $(PKG)
 
 $(SDIST_FILE):
 	python3 setup.py sdist

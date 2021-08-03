@@ -29,7 +29,7 @@ def get_version(rel_path):
 description = long_description.split('\n')[0].split(' - ')[1]
 
 setup(name='runes',
-      version=get_version("runes.py"),
+      version=get_version("__init__.py"),
       description=description,
       long_description=long_description,
       long_description_content_type='text/markdown',
@@ -39,4 +39,5 @@ setup(name='runes',
       license='MIT',
       scripts=[],
       zip_safe=True,
+      packages=['runes'],
       install_requires=requirements)
