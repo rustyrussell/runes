@@ -34,11 +34,12 @@ These can appear inside a `VALUE`, but `&`, `|` and `\\` must be escaped with `\
 `CONDITION` is one of the following values:
 * `!`: Pass if field is missing (value ignored)
 * `=`: Pass if exists and exactly equals
+* `/`: Pass if exists and is not exactly equal
 * `^`: Pass if exists and begins with
 * `$`: Pass if exists and ends with
 * `~`: Pass if exists and contains
-* `<`: Pass if exists, is a valid decimal (may be signed), and numerically less than
-* `>`: Pass if exists, is a valid decimal (may be signed), and numerically greater than
+* `<`: Pass if exists, is a valid integer (may be signed), and numerically less than
+* `>`: Pass if exists, is a valid integer (may be signed), and numerically greater than
 * `}`: Pass if exists and lexicograpically greater than (or longer)
 * `{`: Pass if exists and lexicograpically less than (or shorter)
 * `#`: Always pass: no condition, this is a comment.
