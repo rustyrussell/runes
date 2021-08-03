@@ -29,7 +29,7 @@ def get_version(rel_path):
 description = long_description.split('\n')[0].split(' - ')[1]
 
 setup(name='runes',
-      version=get_version("__init__.py"),
+      version=get_version("runes/__init__.py"),
       description=description,
       long_description=long_description,
       long_description_content_type='text/markdown',
