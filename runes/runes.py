@@ -45,6 +45,10 @@ class Alternative(object):
         if self.field not in values:
             return why(self.cond == '!', self.field, 'is missing')
 
+        # If they supply a function, hand it to them.
+        if callable(values[self.field]):
+            return values[self.field](self)
+
         val = str(values[self.field])
         if self.cond == '!':
             return why(False, self.field, 'is present')
@@ -335,7 +339,7 @@ class MasterRune(Rune):
     def check_with_reason(self, b64str: str, values: Dict[str, Any]) -> Tuple[bool, str]:
         """All-in-one check that a runestring is valid, derives from this
 MasterRune and passes all its conditions against the given dictionary
-of values"""
+of values or callables"""
         try:
             rune = Rune.from_base64(b64str)
         except:  # noqa: E722

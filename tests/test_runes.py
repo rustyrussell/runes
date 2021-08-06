@@ -316,3 +316,15 @@ def test_field_with_punctuation():
     runestr = rune.to_base64()
     rune2 = runes.Rune.from_base64(runestr)
     assert rune == rune2
+
+
+def test_value_callable():
+    def callme_pass(alt: runes.Alternative):
+        return None
+
+    def callme_fail(alt: runes.Alternative):
+        return "failed"
+
+    restr = runes.Restriction.from_str('callme=bar.baz')
+    assert restr.test({'callme': callme_pass}) == None
+    assert restr.test({'callme': callme_fail}) == "failed"

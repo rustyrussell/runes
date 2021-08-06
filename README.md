@@ -162,6 +162,28 @@ print("Your restricted rune is {}".format(rune.to_base64()))
 
 You can find more examples in the examples/ subdirectory.
 
+
+## Best Practices
+
+I recommend including an "id" in each rune you hand out, so that you
+can blacklist particular runes in future (your other option is to
+change your master secret, but that revokes all runes).
+
+See [examples/blacklist.py](examples/blacklist.py).
+
+
+## Advanced Techniques
+
+If you place a callable in the dictionary to check(), that will be
+called if referred to by a restriction, so you can perform your own
+processing.
+
+This is useful in implementing ratelimiting, for example: you can have
+a last-used time for each "id", and thus fail if it is too soon.
+
+See [examples/ratelimit.py](examples/ratelimit.py).
+
+
 ## Author
 
 Rusty Russell wrote it; but I blame @roasbeef for raving about them
