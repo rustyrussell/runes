@@ -5,7 +5,7 @@ import re
 # We can't use the hashlib one, since we need midstate access :(
 import sha256  # type: ignore
 import string
-from typing import Dict, Sequence, Optional, Tuple, Any
+from typing import Dict, Sequence, Optional, Tuple, Any, Union
 
 
 def padlen_64(x: int):
@@ -43,6 +43,9 @@ class Alternative(object):
 
         # If it's missing, it's only True if it's a missing test.
         if self.field not in values:
+            # Default to ignoring id field as long as no version.
+            if self.field == '':
+                return why('-' not in self.value, 'id', 'unknown version {}'.format(self.value))
             return why(self.cond == '!', self.field, 'is missing')
 
         # If they supply a function, hand it to them.
@@ -201,6 +204,19 @@ restriction is met"""
                              .format(remainder))
         return ret
 
+    @classmethod
+    def unique_id(cls,
+                  unique_id: Union[int, str],
+                  version: Optional[Union[int, str]] = None) -> 'Restriction':
+        """Helper to produce an id 'restriction'"""
+        idstr = str(unique_id)
+        if '-' in idstr:
+            raise ValueError('Hyphen not allowed in unique_id {}'.format(idstr))
+        if version:
+            idstr += '-{}'.format(version)
+        # We use the empty field for this, since it's always present.
+        return cls([Alternative('', '=', idstr)])
+
     def __eq__(self, other) -> bool:
         return list(self.alternatives) == list(other.alternatives)
 
@@ -210,7 +226,13 @@ class Rune(object):
 restrictions and it will still be valid"""
     def __init__(self,
                  authcode: bytes,
-                 restrictions: Sequence[Restriction] = []):
+                 restrictions: Sequence[Restriction] = [],
+                 unique_id: Optional[Union[int, str]] = None,
+                 version: Optional[Union[int, str]] = None):
+        # If they provide a unique_id, it goes first.
+        if unique_id is not None:
+            restrictions = ([Restriction.unique_id(unique_id, version)]
+                            + list(restrictions))
         self.restrictions = list(restrictions)
 
         # How many bytes encoded so far? (seed block is 64 bytes)
@@ -281,10 +303,20 @@ restrictions and it will still be valid"""
 
 
 class MasterRune(Rune):
-    """This is where the server creates the Rune"""
+    """This is where the server creates the Rune; it's recommended you
+give each rune a unique id (often a persistent counter) (with an
+optional version), which gets included as an empty-fieldname field.
+
+    """
     def __init__(self,
                  seedsecret: bytes,
-                 restrictions: Sequence[Restriction] = []):
+                 restrictions: Sequence[Restriction] = [],
+                 unique_id: Optional[Union[int, str]] = None,
+                 version: Optional[Union[int, str]] = None):
+        # If they provide a unique_id, it goes first.
+        if unique_id is not None:
+            restrictions = [Restriction.unique_id(unique_id, version)] + list(restrictions)
+
         self.restrictions = []
         # Everyone assumes that seed secret takes 1 block only
         assert len(seedsecret) + 1 + 8 <= 64

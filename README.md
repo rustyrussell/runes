@@ -89,6 +89,24 @@ we use RFC3548 with `+` and `/` replaced by `-` and `_` to make
 it URL safe.
 
 
+## Best Practices
+
+It's usually worth including an id in each rune you hand out so that
+you can blacklist particular runes in future (your other option is to
+change your master secret, but that revokes all runes).  Because this
+appears in all runes, using the empty fieldname (''), and a simple
+counter reduces overall size.
+
+This is made easier by the `unique_id` parameter to 
+
+You may also include version number, to allow future runes to have
+different interpretations.  The most compact scheme is to allow
+'-[version]' in the '' field, and (for the first version) refuse any
+field that has a version field at all.
+
+See [examples/blacklist.py](examples/blacklist.py).
+
+
 ## API Example
 
 Here's the server, making you a rune! (spoiler: it's
@@ -163,15 +181,6 @@ print("Your restricted rune is {}".format(rune.to_base64()))
 You can find more examples in the examples/ subdirectory.
 
 
-## Best Practices
-
-I recommend including an "id" in each rune you hand out, so that you
-can blacklist particular runes in future (your other option is to
-change your master secret, but that revokes all runes).
-
-See [examples/blacklist.py](examples/blacklist.py).
-
-
 ## Advanced Techniques
 
 If you place a callable in the dictionary to check(), that will be
@@ -179,7 +188,7 @@ called if referred to by a restriction, so you can perform your own
 processing.
 
 This is useful in implementing ratelimiting, for example: you can have
-a last-used time for each "id", and thus fail if it is too soon.
+a last-used time for each id, and thus fail if it is too soon.
 
 See [examples/ratelimit.py](examples/ratelimit.py).
 

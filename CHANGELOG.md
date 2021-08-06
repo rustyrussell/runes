@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - ???
+
+## Changed
+ - empty field without hypen ignored by default (unless in values dict)
+
+### Added
+ - Callables in dict allow custom evaluation
+ - id field parameters added to constructors for convenience
+ - New examples for blacklisting and ratelimiting.
+
 ## [0.3.1] - 2021-08-02
 
 ## Fixed

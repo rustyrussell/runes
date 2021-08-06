@@ -328,3 +328,30 @@ def test_value_callable():
     restr = runes.Restriction.from_str('callme=bar.baz')
     assert restr.test({'callme': callme_pass}) == None
     assert restr.test({'callme': callme_fail}) == "failed"
+
+
+def test_id():
+    secret = bytes(16)
+    mr = runes.MasterRune(secret, unique_id=1)
+
+    assert len(mr.restrictions) == 1
+    assert mr.restrictions[0].encode() == '=1'
+
+    # id tag is ignored automatically by default.
+    assert mr.are_restrictions_met({}) == (True, '')
+
+    # But we can insist on it (usually we'd use a call though)
+    assert mr.are_restrictions_met({'': '1'}) == (True, '')
+    assert mr.are_restrictions_met({'': '2'}) == (False, ': != 1')
+
+    # id tags with non-empty versions are failed by default!
+    mr = runes.MasterRune(secret, unique_id=1, version='2')
+
+    assert len(mr.restrictions) == 1
+    assert mr.restrictions[0].encode() == '=1-2'
+
+    assert mr.are_restrictions_met({}) == (False, 'id: unknown version 1-2')
+
+    # But we can insist on it (usually we'd use a call though)
+    assert mr.are_restrictions_met({'': '1'}) == (False, ': != 1-2')
+    assert mr.are_restrictions_met({'': '1-2'}) == (True, '')
