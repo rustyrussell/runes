@@ -97,12 +97,14 @@ change your master secret, but that revokes all runes).  Because this
 appears in all runes, using the empty fieldname (''), and a simple
 counter reduces overall size.
 
-This is made easier by the `unique_id` parameter to 
+This is made trivial by the `unique_id` parameter to Rune() and
+MasterRune(): it adds such an empty field with the unique id (which
+the default evaluator will ignore unless you handle it explicitly).
 
 You may also include version number, to allow future runes to have
-different interpretations.  The most compact scheme is to allow
-'-[version]' in the '' field, and (for the first version) refuse any
-field that has a version field at all.
+different interpretations: thia appends '-[version]' in the '' field:
+the default handler will fail any cookie that has a version field
+(for safe forward compatibility).
 
 See [examples/blacklist.py](examples/blacklist.py).
 
