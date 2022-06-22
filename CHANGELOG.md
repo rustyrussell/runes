@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
  - to_str()/from_str() API for encoding Runes without base64.
+ - tests/ now contains test vectors, for other implementations.
 
 ## [0.4.0] - 2021-08-11
 
