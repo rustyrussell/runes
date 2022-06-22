@@ -88,6 +88,7 @@ Not because base64 is good, but because it's familiar to Web people;
 we use RFC3548 with `+` and `/` replaced by `-` and `_` to make
 it URL safe.
 
+(There's also a string encoding which is easier to read and debug).
 
 ## Best Practices
 

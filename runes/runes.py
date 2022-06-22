@@ -268,6 +268,11 @@ restrictions and it will still be valid"""
     def authcode(self) -> bytes:
         return self.shaobj.state[0]
 
+    def to_str(self) -> str:
+        return (self.authcode().hex()
+                + ':'
+                + '&'.join([r.encode() for r in self.restrictions]))
+
     def to_base64(self) -> str:
         restrstr = '&'.join([r.encode() for r in self.restrictions])
         binstr = base64.urlsafe_b64encode(self.authcode()
@@ -275,15 +280,22 @@ restrictions and it will still be valid"""
         return binstr.decode('utf8')
 
     @classmethod
-    def from_base64(cls, b64str) -> 'Rune':
-        binstr = base64.urlsafe_b64decode(b64str)
+    def from_str(cls, rstr: str) -> 'Rune':
+        if len(rstr) < 64 or rstr[64] != ':':
+            raise ValueError("Rune strings must start with 64 hex digits then '-'")
+        authcode = bytes.fromhex(rstr[:64])
         restrictions = []
-        restrictstr = binstr[32:].decode('utf8')
+        restrictstr = rstr[65:]
 
         while len(restrictstr) != 0:
             restr, restrictstr = Restriction.decode(restrictstr)
             restrictions.append(restr)
-        return cls(binstr[:32], restrictions)
+        return cls(authcode, restrictions)
+
+    @classmethod
+    def from_base64(cls, b64str: str) -> 'Rune':
+        binstr = base64.urlsafe_b64decode(b64str)
+        return cls.from_str(binstr[:32].hex() + ':' + binstr[32:].decode('utf8'))
 
     def __eq__(self, other) -> bool:
         return (self.restrictions == other.restrictions
