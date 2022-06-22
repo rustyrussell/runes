@@ -242,25 +242,42 @@ class Rune(object):
     """A Rune, such as you might get from a server.  You can add
 restrictions and it will still be valid"""
     def __init__(self,
-                 authcode: bytes,
-                 restrictions: Sequence[Restriction] = [],
+                 authbase: bytes,
                  unique_id: Optional[Union[int, str]] = None,
-                 version: Optional[Union[int, str]] = None):
-        # If they provide a unique_id, it goes first.
-        if unique_id is not None:
-            restrictions = ([Restriction.unique_id(unique_id, version)]
-                            + list(restrictions))
-        self.restrictions = list(restrictions)
-
-        # How many bytes encoded so far? (seed block is 64 bytes)
-        runelength = 64
-        for r in restrictions:
-            runelength += len(r.encode())
-            runelength += padlen_64(runelength)
+                 version: Optional[Union[int, str]] = None,
+                 restrictions: Sequence[Restriction] = []):
+        """Convenient constructor: adds unique_id, version and any other restrictions"""
+        assert isinstance(unique_id, (int, str, type(None)))
+        assert isinstance(version, (int, str, type(None)))
+        self.restrictions: List[Restriction] = []
 
         # Replace with real shastate (aka authcode)
         self.shaobj = sha256.sha256()
-        self.shaobj.state = (authcode, runelength)
+        self.shaobj.state = (authbase, 64)
+
+        # If they provide a unique_id, it goes first.
+        if unique_id is not None:
+            self.add_restriction(Restriction.unique_id(unique_id, version))
+
+        for r in restrictions:
+            self.add_restriction(r)
+
+    @classmethod
+    def from_authcode(cls,
+                      authcode: bytes,
+                      restrictions: Sequence[Restriction]):
+        """Alternate constructor when authcode already calculated with these restrictions"""
+        ret = cls(authcode)
+        ret.restrictions = list(restrictions)
+
+        # SHA state needs to simply be updated to cover this length.
+        runelength = ret.shaobj.state[1]
+        for r in ret.restrictions:
+            runelength += len(r.encode())
+            runelength += padlen_64(runelength)
+
+        ret.shaobj.state = (ret.shaobj.state[0], runelength)
+        return ret
 
     def add_restriction(self, restriction: Restriction) -> None:
         self.restrictions.append(restriction)
@@ -310,7 +327,7 @@ restrictions and it will still be valid"""
             restr, restrictstr = Restriction.decode(restrictstr,
                                                     allow_idfield=allow_idfield)
             restrictions.append(restr)
-        return cls(authcode, restrictions)
+        return cls.from_authcode(authcode, restrictions)
 
     @classmethod
     def from_base64(cls, b64str: str) -> 'Rune':
@@ -327,11 +344,11 @@ restrictions and it will still be valid"""
 
     def __copy__(self) -> 'Rune':
         # You don't want to share the shaobj!
-        return Rune(self.shaobj.state[0], self.restrictions)
+        return self.from_authcode(self.shaobj.state[0], self.restrictions)
 
     def __deepcopy__(self, memo=None) -> 'Rune':
         """sha256.sha256 doesn't implement pickle"""
-        return Rune(self.shaobj.state[0], copy.deepcopy(self.restrictions))
+        return self.from_authcode(self.shaobj.state[0], copy.deepcopy(self.restrictions))
 
 
 class MasterRune(Rune):

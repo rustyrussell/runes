@@ -47,23 +47,23 @@ def test_rune_auth():
     mr = runes.MasterRune(secret)
 
     assert check_auth_sha(secret, []) == mr.authcode()
-    assert mr.is_rune_authorized(runes.Rune(mr.authcode(), []))
+    assert mr.is_rune_authorized(runes.Rune.from_authcode(mr.authcode(), []))
 
     restriction = runes.Restriction([runes.Alternative('f1', '=', 'v1')])
     mr.add_restriction(restriction)
 
     assert check_auth_sha(secret, [restriction]) == mr.authcode()
-    assert not mr.is_rune_authorized(runes.Rune(mr.authcode(), []))
-    assert mr.is_rune_authorized(runes.Rune(mr.authcode(), [restriction]))
+    assert not mr.is_rune_authorized(runes.Rune.from_authcode(mr.authcode(), []))
+    assert mr.is_rune_authorized(runes.Rune.from_authcode(mr.authcode(), [restriction]))
 
     long_restriction = runes.Restriction([runes.Alternative('f' * 32, '=', 'v1' * 64)])
     mr.add_restriction(long_restriction)
 
     assert check_auth_sha(secret, [restriction, long_restriction]) == mr.authcode()
-    assert not mr.is_rune_authorized(runes.Rune(mr.authcode(), [restriction]))
-    assert not mr.is_rune_authorized(runes.Rune(mr.authcode(), [long_restriction]))
-    assert not mr.is_rune_authorized(runes.Rune(mr.authcode(), [long_restriction, restriction]))
-    assert mr.is_rune_authorized(runes.Rune(mr.authcode(), [restriction, long_restriction]))
+    assert not mr.is_rune_authorized(runes.Rune.from_authcode(mr.authcode(), [restriction]))
+    assert not mr.is_rune_authorized(runes.Rune.from_authcode(mr.authcode(), [long_restriction]))
+    assert not mr.is_rune_authorized(runes.Rune.from_authcode(mr.authcode(), [long_restriction, restriction]))
+    assert mr.is_rune_authorized(runes.Rune.from_authcode(mr.authcode(), [restriction, long_restriction]))
 
 
 def test_rune_alternatives():
@@ -193,7 +193,7 @@ def test_rune_restrictions():
     alt1 = runes.Alternative('f1', '!', '')
     alt2 = runes.Alternative('f2', '=', '2')
 
-    rune = runes.Rune(bytes(32), [runes.Restriction((alt1, alt2))])
+    rune = runes.Rune(bytes(32), restrictions=[runes.Restriction((alt1, alt2))])
     assert rune.are_restrictions_met({}) == (True, '')
     assert (rune.are_restrictions_met({'f1': '1', 'f2': 3})
             == (False, 'f1: is present AND f2: != 2'))
@@ -202,8 +202,8 @@ def test_rune_restrictions():
     assert rune.are_restrictions_met({'f2': '2'}) == (True, '')
 
     alt3 = runes.Alternative('f3', '>', '2')
-    rune = runes.Rune(bytes(32), [runes.Restriction((alt1, alt2)),
-                                  runes.Restriction((alt3,))])
+    rune = runes.Rune(bytes(32), restrictions=[runes.Restriction((alt1, alt2)),
+                                               runes.Restriction((alt3,))])
     assert rune.are_restrictions_met({}) == (False, 'f3: is missing')
     assert (rune.are_restrictions_met({'f1': '1', 'f2': 3})
             == (False, 'f1: is present AND f2: != 2'))
@@ -287,7 +287,7 @@ def test_check():
 
 
 def test_field_with_punctuation():
-    rune = runes.Rune(bytes(32), [runes.Restriction.from_str('foo=bar.baz')])
+    rune = runes.Rune(bytes(32), restrictions=[runes.Restriction.from_str('foo=bar.baz')])
     runestr = rune.to_base64()
 
     rune2 = runes.Rune.from_base64(runestr)
