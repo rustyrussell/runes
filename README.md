@@ -96,16 +96,19 @@ It's usually worth including an id in each rune you hand out so that
 you can blacklist particular runes in future (your other option is to
 change your master secret, but that revokes all runes).  Because this
 appears in all runes, using the empty fieldname (''), and a simple
-counter reduces overall size.
+counter reduces overall size, but you could use a UUID.
 
 This is made trivial by the `unique_id` parameter to Rune() and
 MasterRune(): it adds such an empty field with the unique id (which
 the default evaluator will ignore unless you handle it explicitly).
 
 You may also include version number, to allow future runes to have
-different interpretations: thia appends '-[version]' in the '' field:
+different interpretations: this appends '-[version]' in the '' field:
 the default handler will fail any cookie that has a version field
 (for safe forward compatibility).
+
+The rune unmarshalling code ensures that if an empty parameter exists,
+it's the first one, and it's of a valid form.
 
 See [examples/blacklist.py](examples/blacklist.py).
 

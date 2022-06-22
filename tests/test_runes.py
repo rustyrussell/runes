@@ -1,6 +1,7 @@
 import base64
 import copy
 import hashlib
+import pytest
 import runes
 import sha256  # type: ignore
 import string
@@ -355,3 +356,31 @@ def test_id():
     # But we can insist on it (usually we'd use a call though)
     assert mr.are_restrictions_met({'': '1'}) == (False, ': != 1-2')
     assert mr.are_restrictions_met({'': '1-2'}) == (True, '')
+
+
+def test_unique_id_restrictions():
+    secret = bytes(16)
+    mr = runes.MasterRune(secret, unique_id=1)
+
+    alt1 = runes.Alternative('', '=', '2', allow_idfield=True)
+
+    # Don't let them override unique id
+    rune = mr.copy()
+    rune.add_restriction(alt1)
+    with pytest.raises(ValueError, match="unique_id field not valid here"):
+        runes.Rune.from_base64(rune.to_base64())
+
+    # Simple sanity checks on unique id if provided.
+    rune = copy.deepcopy(mr)
+    for cond in ('!', '/', '^', '$', '~', '<', '>', '}', '{', '#'):
+        rune.restrictions[0].alternatives[0].cond = cond
+        with pytest.raises(ValueError, match="unique_id condition must be '='"):
+            runes.Rune.from_base64(rune.to_base64())
+
+    # Can't have multiple alternatives in uniqueid
+    secret = bytes(16)
+    mr = runes.MasterRune(secret)
+    alt2 = runes.Alternative('f', '=', '1')
+    mr.add_restriction(runes.Restriction([alt1, alt2]))
+    with pytest.raises(ValueError, match="unique_id field cannot have alternatives"):
+        runes.Rune.from_base64(mr.to_base64())

@@ -5,7 +5,7 @@ import re
 # We can't use the hashlib one, since we need midstate access :(
 import sha256  # type: ignore
 import string
-from typing import Dict, Sequence, Optional, Tuple, Any, Union
+from typing import Dict, List, Sequence, Optional, Tuple, Any, Union
 
 
 def padlen_64(x: int):
@@ -21,14 +21,22 @@ def end_shastream(length: int):
 
 class Alternative(object):
     """One of possibly several conditions which could be met"""
-    def __init__(self, field: str, cond: str, value: str):
+    def __init__(self, field: str, cond: str, value: str, allow_idfield: bool = False):
         if any([c in string.punctuation for c in field]):
             raise ValueError("field not valid")
         if cond not in ('!', '=', '/', '^', '$', '~', '<', '>', '}', '{', '#'):
             raise ValueError("cond not valid")
+        if field == '':
+            if not allow_idfield:
+                raise ValueError("unique_id field not valid here")
+            if cond != '=':
+                raise ValueError("unique_id condition must be '='")
         self.field = field
         self.value = value
         self.cond = cond
+
+    def is_unique_id(self) -> bool:
+        return self.field == ''
 
     def test(self, values: Dict[str, Any]) -> Optional[str]:
         """Returns None on success, otherwise an explanation string"""
@@ -44,7 +52,7 @@ class Alternative(object):
         # If it's missing, it's only True if it's a missing test.
         if self.field not in values:
             # Default to ignoring id field as long as no version.
-            if self.field == '':
+            if self.is_unique_id():
                 return why('-' not in self.value, 'id', 'unknown version {}'.format(self.value))
             return why(self.cond == '!', self.field, 'is missing')
 
@@ -118,7 +126,7 @@ class Alternative(object):
                                          .replace('&', '\\&'))
 
     @classmethod
-    def decode(cls, encstr: str) -> Tuple['Alternative', str]:
+    def decode(cls, encstr: str, allow_idfield: bool = False) -> Tuple['Alternative', str]:
         """Pull an Alternative from encoded string, return remainder"""
         cond = None
         end_off = 0
@@ -148,13 +156,14 @@ class Alternative(object):
             value += encstr[end_off]
             end_off += 1
 
-        return cls(field, cond, value), encstr[end_off:]
+        return cls(field, cond, value, allow_idfield), encstr[end_off:]
 
     @classmethod
     def from_str(cls, encstr: str) -> 'Alternative':
         """Turns this user-readable string into an Alternative (no escaping)"""
         encstr = re.sub(r'\s+', '', encstr)
-        return cls(*re.split('([' + string.punctuation + '])', encstr, maxsplit=1))
+        parts = re.split('([' + string.punctuation + '])', encstr, maxsplit=1)
+        return cls(parts[0], parts[1], parts[2])
 
     def __eq__(self, other) -> bool:
         return (self.field == other.field
@@ -166,6 +175,8 @@ class Restriction(object):
     """A restriction is a set of alternatives: any of those pass, the
 restriction is met"""
     def __init__(self, alternatives: Sequence[Alternative]):
+        if alternatives == []:
+            raise ValueError("Restriction must have some alternatives")
         self.alternatives = alternatives
 
     def test(self, values: Dict[str, Any]) -> Optional[str]:
@@ -183,15 +194,21 @@ restriction is met"""
         return '|'.join([alt.encode() for alt in self.alternatives])
 
     @classmethod
-    def decode(cls, encstr: str) -> Tuple['Restriction', str]:
+    def decode(cls, encstr: str, allow_idfield: bool = False) -> Tuple['Restriction', str]:
         """Pull a Restriction from encoded string, return remainder"""
         alts = []
         while len(encstr) != 0:
             if encstr.startswith('&'):
                 encstr = encstr[1:]
                 break
-            alt, encstr = Alternative.decode(encstr)
+            alt, encstr = Alternative.decode(encstr, allow_idfield)
             alts.append(alt)
+            # We never allow id fields after first.
+            allow_idfield = False
+
+        if len(alts) > 1 and alts[0].is_unique_id():
+            raise ValueError("unique_id field cannot have alternatives")
+
         return cls(alts), encstr
 
     @classmethod
@@ -215,7 +232,7 @@ restriction is met"""
         if version:
             idstr += '-{}'.format(version)
         # We use the empty field for this, since it's always present.
-        return cls([Alternative('', '=', idstr)])
+        return cls([Alternative('', '=', idstr, allow_idfield=True)])
 
     def __eq__(self, other) -> bool:
         return list(self.alternatives) == list(other.alternatives)
@@ -284,11 +301,14 @@ restrictions and it will still be valid"""
         if len(rstr) < 64 or rstr[64] != ':':
             raise ValueError("Rune strings must start with 64 hex digits then '-'")
         authcode = bytes.fromhex(rstr[:64])
-        restrictions = []
+        restrictions: List[Restriction] = []
         restrictstr = rstr[65:]
 
         while len(restrictstr) != 0:
-            restr, restrictstr = Restriction.decode(restrictstr)
+            # ID field is only valid at front!
+            allow_idfield = (restrictions == [])
+            restr, restrictstr = Restriction.decode(restrictstr,
+                                                    allow_idfield=allow_idfield)
             restrictions.append(restr)
         return cls(authcode, restrictions)
 
