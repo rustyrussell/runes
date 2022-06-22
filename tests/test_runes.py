@@ -270,8 +270,8 @@ def test_check():
     # Rune with 16x0 secret.
     secret = bytes(16)
     mr = runes.MasterRune(secret)
-    rune = mr.copy()
-    rune.add_restriction(runes.Restriction.from_str('foo=bar'))
+    rune = runes.Rune(mr.authcode(),
+                      restrictions=[runes.Restriction.from_str('foo=bar')])
     runestr = rune.to_base64()
 
     # MasterRune variants work
